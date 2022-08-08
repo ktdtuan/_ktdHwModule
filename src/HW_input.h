@@ -56,7 +56,7 @@ public:
 	}
 	void deactive(void)
 	{
-		this->tCheck->active();
+		this->tCheck->detach();
 	}
 };
 
