@@ -19,44 +19,26 @@ private:
 	{
 		int32_t timeOn;
 		int32_t timeOff;
-		uint32_t retry;
+		int32_t retry;
 	} config;
 
 	void blinkOn(void)
 	{
-		this->interval->once_ms<void *>(
-			config.timeOn,
-			[](void *arg)
-			{
-				((HW_blink *)(arg))->blinkOff();
-			},
-			this);
-
 		this->on();
 
-		// report
-		if (this->_cb != NULL)
-			this->_cb(this->_pin, !this->_level);
+		this->interval->once_ms<void *>(config.timeOn,[](void *arg){((HW_blink *)(arg))->blinkOff();},this);
 	}
 
 	void blinkOff(void)
 	{
-		if (--config.retry > 0)
-		{
-			this->interval->once_ms<void *>(
-				config.timeOff,
-				[](void *arg)
-				{
-					((HW_blink *)(arg))->blinkOn();
-				},
-				this);
-		}
-
 		this->off();
 
-		//  report
-		if (this->_cb != NULL)
-			this->_cb(this->_pin, this->_level);
+		if(config.retry > 0)
+			config.retry -= 1;
+		if (config.retry != 0)
+		{
+			this->interval->once_ms<void *>(config.timeOff, [](void *arg){((HW_blink *)(arg))->blinkOn();}, this);
+		}
 	}
 
 public:
@@ -91,11 +73,21 @@ public:
 
 	void on(void)
 	{
+		this->interval->detach();
 		digitalWrite(this->_pin, !this->_level);
+		
+		// report
+		if (this->_cb != NULL)
+			this->_cb(this->_pin, !this->_level);
 	}
 	void off(void)
 	{
+		this->interval->detach();
 		digitalWrite(this->_pin, this->_level);
+
+		//  report
+		if (this->_cb != NULL)
+			this->_cb(this->_pin, this->_level);
 	}
 };
 
