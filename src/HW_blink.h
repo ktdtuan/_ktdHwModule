@@ -35,7 +35,7 @@ private:
 
 		if(config.retry > 0)
 			config.retry -= 1;
-		if (config.retry != 0)
+		if (config.retry > 0 || config.retry == -1)
 		{
 			this->interval->once_ms<void *>(config.timeOff, [](void *arg){((HW_blink *)(arg))->blinkOn();}, this);
 		}
@@ -62,7 +62,7 @@ public:
 		delete this->interval;
 	}
 
-	void blink(int32_t timeOn, int32_t timeOff, uint32_t retry)
+	void blink(int32_t timeOn, int32_t timeOff, int32_t retry)
 	{
 		this->config.timeOn = timeOn;
 		this->config.timeOff = timeOff;
